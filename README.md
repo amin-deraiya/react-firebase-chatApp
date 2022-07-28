@@ -8,6 +8,6 @@ Quick Start:
 
 - ``` git clone ```
 - ``` cd react-firebase-chatApp ```
-- create a firebase firebase.js file on /src
+- Add your firebase configuration to firebase.js file on /src
 - ``` npm install ```
 - ``` npm start ```
