@@ -11,3 +11,9 @@ Quick Start:
 - Add your firebase configuration to firebase.js file on /src
 - ``` npm install ```
 - ``` npm start ```
+
+
+### Todos
+
+- [ ] Display Date below message
+- [ ] Display unread message count besides users profile
