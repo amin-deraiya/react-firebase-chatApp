@@ -13,7 +13,8 @@ Quick Start:
 - ``` npm start ```
 
 
-### Todos
 
+### Todos
+------------
 - [ ] Display Date below message
 - [ ] Display unread message count besides users profile
