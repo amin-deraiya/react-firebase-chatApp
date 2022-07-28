@@ -1,0 +1,14 @@
+body {
+  background: url('./assets/Pale-Turquoise_1.jpg');
+  background-size: auto;
+  background-position: center;
+  height: 100%;
+}
+
+#root {
+  height: 100%;
+}
+
+html {
+  height: 100%;
+}
