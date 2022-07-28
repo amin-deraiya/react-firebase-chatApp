@@ -5,7 +5,7 @@ import { getStorage } from 'firebase/storage';
 import { getFirestore } from 'firebase/firestore';
 import 'firebase/storage';
 
-const firebaseConfig = {};
+const firebaseConfig = {}; //Add your configs here
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
