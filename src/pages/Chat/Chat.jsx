@@ -3,19 +3,10 @@ import { styled } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import MuiDrawer from '@mui/material/Drawer';
 import MuiAppBar from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
-import List from '@mui/material/List';
 import CssBaseline from '@mui/material/CssBaseline';
-import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
-import IconButton from '@mui/material/IconButton';
-import MenuIcon from '@mui/icons-material/Menu';
-import ListItem from '@mui/material/ListItem';
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import ListItemText from '@mui/material/ListItemText';
 import SendIcon from '@mui/icons-material/Send';
-import { Avatar, Badge, Button, CardHeader, Chip, Menu, MenuItem, TextField, Tooltip } from '@mui/material';
+import { Avatar, Badge, CardHeader, Chip, Fab, TextField, Typography } from '@mui/material';
 import { useUserAuth } from '../../context/userAuthContext';
 import {
   collection,
@@ -29,6 +20,9 @@ import {
   limit,
 } from 'firebase/firestore';
 import { db } from '../../firebase';
+import { DrawerWithNav } from './components/DrawerWithNav';
+import moment from 'moment';
+import './chat.css';
 
 const drawerWidth = 240;
 
@@ -53,7 +47,7 @@ const closedMixin = (theme) => ({
   },
 });
 
-const DrawerHeader = styled('div')(({ theme }) => ({
+export const DrawerHeader = styled('div')(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'flex-end',
@@ -62,7 +56,7 @@ const DrawerHeader = styled('div')(({ theme }) => ({
   ...theme.mixins.toolbar,
 }));
 
-const AppBar = styled(MuiAppBar, {
+export const AppBar = styled(MuiAppBar, {
   shouldForwardProp: (prop) => prop !== 'open',
 })(({ theme, open }) => ({
   zIndex: theme.zIndex.drawer + 1,
@@ -80,22 +74,24 @@ const AppBar = styled(MuiAppBar, {
   }),
 }));
 
-const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' })(({ theme, open }) => ({
-  width: drawerWidth,
-  flexShrink: 0,
-  whiteSpace: 'nowrap',
-  boxSizing: 'border-box',
-  ...(open && {
-    ...openedMixin(theme),
-    '& .MuiDrawer-paper': openedMixin(theme),
-  }),
-  ...(!open && {
-    ...closedMixin(theme),
-    '& .MuiDrawer-paper': closedMixin(theme),
-  }),
-}));
+export const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' })(
+  ({ theme, open }) => ({
+    width: drawerWidth,
+    flexShrink: 0,
+    whiteSpace: 'nowrap',
+    boxSizing: 'border-box',
+    ...(open && {
+      ...openedMixin(theme),
+      '& .MuiDrawer-paper': openedMixin(theme),
+    }),
+    ...(!open && {
+      ...closedMixin(theme),
+      '& .MuiDrawer-paper': closedMixin(theme),
+    }),
+  })
+);
 
-const StyledBadge = styled(Badge)(({ theme }) => ({
+export const StyledBadge = styled(Badge)(({ theme }) => ({
   '& .MuiBadge-badge': {
     backgroundColor: '#44b700',
     color: '#44b700',
@@ -125,30 +121,13 @@ const StyledBadge = styled(Badge)(({ theme }) => ({
 }));
 
 export default function Chat() {
-  const [open, setOpen] = React.useState(true);
   const [allUsers, setAllUsers] = React.useState([]);
   const [roomId, setRoomId] = React.useState('');
   const [selectedPerson, setSelectedPerson] = React.useState([]);
-  const [messages, setMessages] = React.useState([]);
-  const [anchorElUser, setAnchorElUser] = React.useState(null);
+  const [messages, setMessages] = React.useState([]);  
+
   const [message, setMessage] = React.useState('');
-  const { logOut, user } = useUserAuth();
-
-  const handleDrawerOpen = () => {
-    setOpen(true);
-  };
-
-  const handleDrawerClose = () => {
-    setOpen(false);
-  };
-
-  const handleOpenUserMenu = (event) => {
-    setAnchorElUser(event.currentTarget);
-  };
-
-  const handleCloseUserMenu = () => {
-    setAnchorElUser(null);
-  };
+  const { user } = useUserAuth();  
 
   React.useEffect(() => {
     if (user.uid) {
@@ -164,10 +143,6 @@ export default function Chat() {
       });
     }
   }, [user]);
-
-  const handleLogout = () => {
-    logOut();
-  };
 
   function getMessages(roomId) {
     return onSnapshot(
@@ -185,14 +160,12 @@ export default function Chat() {
   }
 
   const handlePersonChat = async (person) => {
-    setOpen(false);
     let roomid = [user.uid, person.data.uid].sort();
     roomid = roomid[0] + roomid[1];
     setSelectedPerson(person);
     console.log({ roomid });
     setRoomId(roomid);
     getMessages(roomid);
-
     // try {
     //   // setDoc(doc(db, 'users', user.uid), {
 
@@ -217,168 +190,31 @@ export default function Chat() {
 
   const sendMsg = async (e) => {
     e.preventDefault();
-    const msg = message;
-    const msgObj = {
-      time: Timestamp.now(),
-      message: msg,
-      sender: user.uid,
-      receiver: selectedPerson.data.uid,
-    };
-    console.log({ msgObj });
-    setMessages((oldArray) => [...oldArray, msgObj]);
-    try {
-      await addDoc(collection(db, 'chats', roomId, 'messages'), msgObj);
-    } catch (error) {
-      console.error(error);
+    const msg = message.trim();
+    if (msg) {
+      const msgObj = {
+        time: Timestamp.now(),
+        message: msg,
+        sender: user.uid,
+        receiver: selectedPerson.data.uid,
+      };
+      console.log({ msgObj });
+      setMessages((oldArray) => [...oldArray, msgObj]);
+      try {
+        await addDoc(collection(db, 'chats', roomId, 'messages'), msgObj);
+      } catch (error) {
+        console.error(error);
+      }
+      setMessage('');
+    } else {
+      setMessage('');
     }
-    setMessage('');
   };
 
   return (
     <Box sx={{ display: 'flex', height: '100%', position: 'relative' }}>
       <CssBaseline />
-      <Box
-        className='wrapper'
-        sx={(theme) => ({
-          [theme.breakpoints.down('sm')]: {
-            position: 'absolute',
-          },
-        })}
-      >
-        <Drawer variant='permanent' open={open}>
-          <DrawerHeader sx={{ justifyContent: 'flex-start', background: '#1976d2' }}>
-            <IconButton onClick={handleDrawerClose}>
-              {/* {theme.direction === 'rtl' ? <ChevronRightIcon /> : <ChevronLeftIcon />} */}
-              <MenuIcon sx={{ color: 'white' }} />
-            </IconButton>
-          </DrawerHeader>
-          <Divider />
-          <List>
-            {allUsers?.map((item, index) => (
-              <ListItem key={index} disablePadding sx={{ display: 'block' }}>
-                <ListItemButton
-                  sx={{
-                    minHeight: 48,
-                    justifyContent: open ? 'initial' : 'center',
-                    px: 2.5,
-                  }}
-                  onClick={() => handlePersonChat(item)}
-                >
-                  <ListItemIcon
-                    sx={{
-                      minWidth: 0,
-                      mr: open ? 3 : 'auto',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <StyledBadge
-                      overlap='circular'
-                      anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                      // variant='dot'
-                    >
-                      <Avatar alt='Remy Sharp' src={item?.data?.profile_pictures} />
-                    </StyledBadge>
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={item?.data?.displayName?.split(' ')[0]}
-                    sx={{ opacity: open ? 1 : 0 }}
-                  />
-                </ListItemButton>
-              </ListItem>
-            ))}
-          </List>
-          {/* <Divider />
-        <List>
-          {['All mail', 'Trash', 'Spam'].map((text, index) => (
-            <ListItem key={text} disablePadding sx={{ display: 'block' }}>
-              <ListItemButton
-                sx={{
-                  minHeight: 48,
-                  justifyContent: open ? 'initial' : 'center',
-                  px: 2.5,
-                }}
-              >
-                <ListItemIcon
-                  sx={{
-                    minWidth: 0,
-                    mr: open ? 3 : 'auto',
-                    justifyContent: 'center',
-                  }}
-                >
-                  {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
-                </ListItemIcon>
-                <ListItemText primary={text} sx={{ opacity: open ? 1 : 0 }} />
-              </ListItemButton>
-            </ListItem>
-          ))}
-        </List> */}
-        </Drawer>
-        <AppBar
-          position='fixed'
-          open={open}
-          sx={(theme) => ({
-            boxShadow: 'none',
-            [theme.breakpoints.down('sm')]: {
-              width: open ? 'calc(100% - 48px)' : '100%',
-            },
-          })}
-        >
-          <Toolbar>
-            <IconButton
-              color='inherit'
-              aria-label='open drawer'
-              onClick={handleDrawerOpen}
-              edge='start'
-              sx={{
-                marginRight: 5,
-                ...(open && { display: 'none' }),
-              }}
-            >
-              <MenuIcon />
-            </IconButton>
-            <Box display='flex' justifyContent='space-between' width='100%'>
-              <Typography variant='h6' noWrap component='div'>
-                Penguins Chat
-              </Typography>
-              <Box sx={{ flexGrow: 0 }}>
-                <Tooltip title='Open settings'>
-                  <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                    <Avatar alt={user.displayName} src={user.photoURL} />
-                  </IconButton>
-                </Tooltip>
-                <Menu
-                  sx={{ mt: '45px' }}
-                  id='menu-appbar'
-                  anchorEl={anchorElUser}
-                  anchorOrigin={{
-                    vertical: 'top',
-                    horizontal: 'right',
-                  }}
-                  keepMounted
-                  transformOrigin={{
-                    vertical: 'top',
-                    horizontal: 'right',
-                  }}
-                  open={Boolean(anchorElUser)}
-                  onClose={handleCloseUserMenu}
-                >
-                  <MenuItem onClick={handleCloseUserMenu}>
-                    <Typography textAlign='center'>{user.displayName}</Typography>
-                  </MenuItem>
-                  <MenuItem
-                    onClick={() => {
-                      handleCloseUserMenu();
-                      handleLogout();
-                    }}
-                  >
-                    <Typography textAlign='center'>Logout</Typography>
-                  </MenuItem>
-                </Menu>
-              </Box>
-            </Box>
-          </Toolbar>
-        </AppBar>
-      </Box>
+      <DrawerWithNav allUsers={allUsers} handlePersonChat={handlePersonChat} />
       <Box
         component='main'
         sx={(theme) => ({
@@ -386,34 +222,39 @@ export default function Chat() {
           [theme.breakpoints.down('sm')]: {
             marginLeft: '65px',
           },
+          position: 'relative',
+          overflow: 'hidden',
+          maxWidth: '1024px',
+          mx: 'auto',
         })}
       >
         <DrawerHeader />
         {selectedPerson?.data ? (
           <Box
+            sx={(theme) => ({
+              [theme.breakpoints.down('lg')]: {
+                px: 2,
+              },
+            })}
+          >
+            <CardHeader
+              avatar={<Avatar src={selectedPerson?.data?.profile_pictures} aria-label='recipe' />}
+              sx={{ p: 0, mb: 1.5 }}
+              title={selectedPerson?.data?.displayName}
+            />
+            <Divider />
+          </Box>
+        ) : null}
+        {selectedPerson?.data ? (
+          <Box
             sx={{
-              height: 'calc(100% - 64px)',
+              height: 'calc(100vh - 197px)',
               pt: 1.5,
               display: 'flex',
               flexDirection: 'column',
-              maxWidth: '1024px',
-              mx: 'auto',
+              overflow: "auto"
             }}
           >
-            <Box
-              sx={(theme) => ({
-                [theme.breakpoints.down('lg')]: {
-                  px: 2,
-                },
-              })}
-            >
-              <CardHeader
-                avatar={<Avatar src={selectedPerson?.data?.profile_pictures} aria-label='recipe' />}
-                sx={{ p: 0, mb: 1.5 }}
-                title={selectedPerson?.data?.displayName}
-              />
-              <Divider />
-            </Box>
             <Box
               sx={{
                 flex: 1,
@@ -423,38 +264,76 @@ export default function Chat() {
                 justifyContent: 'flex-end',
                 mb: 2,
               }}
+              className='msgWrapper'
             >
               {messages?.map((msg, i) => {
                 return (
-                  <Box key={i} sx={{ alignSelf: msg.sender === user.uid ? 'end' : 'flex-start', my: 0.5 }}>
+                  <Box
+                    key={i}
+                    className={msg.sender === user.uid ? 'myMessage' : 'notMyMessage'}
+                    sx={{
+                      alignSelf: msg.sender === user.uid ? 'end' : 'flex-start',
+                      my: 0.3,
+                      maxWidth: '80%',
+                    }}
+                  >
                     <Chip
                       color={msg.sender === user.uid ? 'primary' : 'secondary'}
-                      label={msg.message}
-                      sx={{ fontSize: 'large' }}
+                      label={
+                        <Box display='flex' flexDirection='column'>
+                          <span style={{ fontWeight: '500' }}>{msg.message}</span>
+                          <Typography variant='body2' color='burlywood' fontWeight={'bold'}>
+                            {moment(msg.time.toDate().toDateString()).format('D-MMM-YY, h:mm a')}
+                          </Typography>
+                        </Box>
+                      }
+                      sx={{
+                        fontSize: 'large',
+                        height: 'auto',
+                        p: 1,
+                        borderTopRightRadius: msg.sender === user.uid ? '0px' : '16px',
+                        borderTopLeftRadius: msg.sender !== user.uid ? '0px' : '16px',
+                        '& span': {
+                          whiteSpace: 'normal',
+                        },
+                      }}
                     />
                   </Box>
                 );
               })}
             </Box>
-            <form onSubmit={sendMsg}>
-              <Box display='flex' sx={{ px: 1, alignItems: 'center', mb: 2 }}>
-                <Box sx={{ mr: 1, flex: 1 }}>
-                  <TextField
-                    variant='filled'
-                    value={message}
-                    label='Type message'
-                    sx={{ width: '100%' }}
-                    onChange={(e) => setMessage(e.target.value)}
-                  />
-                </Box>
-                <Box sx={{ mr: 1, height: '100%' }}>
-                  <Button variant='contained' endIcon={<SendIcon />} sx={{ height: '100%' }} type='submit'>
-                    Send
-                  </Button>
-                </Box>
-              </Box>
-            </form>
           </Box>
+        ) : null}
+        {selectedPerson?.data ? (
+          <form
+            onSubmit={sendMsg}
+            style={{
+              position: 'fixed',
+              bottom: 0,
+              width: '100%',
+              maxWidth: '1024px',
+              // backgroundColor: 'white',
+              paddingTop: '10px',
+              paddingBottom: '10px',
+            }}
+          >
+            <Box display='flex' sx={{ px: 1, alignItems: 'center', mb: 0.5 }}>
+              <Box sx={{ mr: 1, flex: 1 }}>
+                <TextField
+                  variant='outlined'
+                  value={message}
+                  label='Type message'
+                  sx={{ width: '100%' }}
+                  onChange={(e) => setMessage(e.target.value)}
+                />
+              </Box>
+              <Box sx={{ mr: 1, height: '100%' }}>
+                <Fab color='primary' aria-label='send' type='submit'>
+                  <SendIcon />
+                </Fab>
+              </Box>
+            </Box>
+          </form>
         ) : null}
       </Box>
     </Box>

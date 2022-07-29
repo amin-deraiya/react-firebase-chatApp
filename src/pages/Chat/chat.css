@@ -1,0 +1,28 @@
+.msgWrapper > .myMessage + .myMessage .MuiChip-filled {
+  border-top-right-radius: 16px;
+}
+
+.msgWrapper > .notMyMessage + .notMyMessage .MuiChip-filled {
+  border-top-left-radius: 16px;
+}
+::-webkit-scrollbar {
+  width: 3px;
+  position: absolute;
+  right: 20px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+ 
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #00000050;
+  border-radius: 41px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #454053;
+}
