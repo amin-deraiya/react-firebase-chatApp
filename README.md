@@ -1,4 +1,4 @@
-Penguins Chat using React.JS, Firebase v9 with Google Login
+Penguins Chat using React Js, Firebase v9 and material ui with Google Login
 =====================================
 
 Live [demo](https://penguine-chat.netlify.app/)
