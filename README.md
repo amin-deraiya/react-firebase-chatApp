@@ -15,8 +15,23 @@ Quick Start:
 - ``` npm start ```
 
 
+Additional Configuration:
+-------------------------
+
+On firebase console navigate to Firestore Database -> Rules -> Edit Rules 
+replace the entire code to this:
+``` rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+} ``
+
+
 
 ### Todos
 ------------
-- [ ] Display Date below message
+- [x] Display Date below message
 - [ ] Display unread message count besides users profile
