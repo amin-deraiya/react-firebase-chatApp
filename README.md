@@ -27,7 +27,7 @@ service cloud.firestore {
       allow read, write: if request.auth != null;
     }
   }
-} ``
+} ```
 
 
 
