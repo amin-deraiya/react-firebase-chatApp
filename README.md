@@ -34,10 +34,3 @@ service cloud.firestore {
   }
 }
 ```
-
-
-
-### Todos
-------------
-- [x] Display Date below message
-- [ ] Display unread message count besides users profile
