@@ -1,13 +1,21 @@
-import * as React from 'react';
-import { styled } from '@mui/material/styles';
-import Box from '@mui/material/Box';
-import MuiDrawer from '@mui/material/Drawer';
-import MuiAppBar from '@mui/material/AppBar';
-import CssBaseline from '@mui/material/CssBaseline';
-import Divider from '@mui/material/Divider';
-import SendIcon from '@mui/icons-material/Send';
-import { Avatar, Badge, CardHeader, Chip, Fab, TextField, Typography } from '@mui/material';
-import { useUserAuth } from '../../context/userAuthContext';
+import * as React from 'react'
+import { styled } from '@mui/material/styles'
+import Box from '@mui/material/Box'
+import MuiDrawer from '@mui/material/Drawer'
+import MuiAppBar from '@mui/material/AppBar'
+import CssBaseline from '@mui/material/CssBaseline'
+import Divider from '@mui/material/Divider'
+import SendIcon from '@mui/icons-material/Send'
+import {
+  Avatar,
+  Badge,
+  CardHeader,
+  Chip,
+  Fab,
+  TextField,
+  Typography,
+} from '@mui/material'
+import { useUserAuth } from '../../context/userAuthContext'
 import {
   collection,
   query,
@@ -18,13 +26,13 @@ import {
   addDoc,
   orderBy,
   limit,
-} from 'firebase/firestore';
-import { db } from '../../firebase';
-import { DrawerWithNav } from './components/DrawerWithNav';
-import moment from 'moment';
-import './chat.css';
+} from 'firebase/firestore'
+import { db } from '../../firebase'
+import { DrawerWithNav } from './components/DrawerWithNav'
+import moment from 'moment'
+import './chat.css'
 
-const drawerWidth = 240;
+const drawerWidth = 240
 
 const openedMixin = (theme) => ({
   width: drawerWidth,
@@ -33,7 +41,7 @@ const openedMixin = (theme) => ({
     duration: theme.transitions.duration.enteringScreen,
   }),
   overflowX: 'hidden',
-});
+})
 
 const closedMixin = (theme) => ({
   transition: theme.transitions.create('width', {
@@ -45,7 +53,7 @@ const closedMixin = (theme) => ({
   [theme.breakpoints.up('sm')]: {
     width: `calc(${theme.spacing(8)} + 1px)`,
   },
-});
+})
 
 export const DrawerHeader = styled('div')(({ theme }) => ({
   display: 'flex',
@@ -54,7 +62,7 @@ export const DrawerHeader = styled('div')(({ theme }) => ({
   padding: theme.spacing(0, 1),
   // necessary for content to be below app bar
   ...theme.mixins.toolbar,
-}));
+}))
 
 export const AppBar = styled(MuiAppBar, {
   shouldForwardProp: (prop) => prop !== 'open',
@@ -72,24 +80,24 @@ export const AppBar = styled(MuiAppBar, {
       duration: theme.transitions.duration.enteringScreen,
     }),
   }),
-}));
+}))
 
-export const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' })(
-  ({ theme, open }) => ({
-    width: drawerWidth,
-    flexShrink: 0,
-    whiteSpace: 'nowrap',
-    boxSizing: 'border-box',
-    ...(open && {
-      ...openedMixin(theme),
-      '& .MuiDrawer-paper': openedMixin(theme),
-    }),
-    ...(!open && {
-      ...closedMixin(theme),
-      '& .MuiDrawer-paper': closedMixin(theme),
-    }),
-  })
-);
+export const Drawer = styled(MuiDrawer, {
+  shouldForwardProp: (prop) => prop !== 'open',
+})(({ theme, open }) => ({
+  width: drawerWidth,
+  flexShrink: 0,
+  whiteSpace: 'nowrap',
+  boxSizing: 'border-box',
+  ...(open && {
+    ...openedMixin(theme),
+    '& .MuiDrawer-paper': openedMixin(theme),
+  }),
+  ...(!open && {
+    ...closedMixin(theme),
+    '& .MuiDrawer-paper': closedMixin(theme),
+  }),
+}))
 
 export const StyledBadge = styled(Badge)(({ theme }) => ({
   '& .MuiBadge-badge': {
@@ -118,45 +126,61 @@ export const StyledBadge = styled(Badge)(({ theme }) => ({
       opacity: 0,
     },
   },
-}));
+}))
 
 export default function Chat() {
-  const [allUsers, setAllUsers] = React.useState([]);
-  const [roomId, setRoomId] = React.useState('');
-  const [selectedPerson, setSelectedPerson] = React.useState([]);
-  const [messages, setMessages] = React.useState([]);  
+  const [allUsers, setAllUsers] = React.useState([])
+  const [roomId, setRoomId] = React.useState('')
+  const [selectedPerson, setSelectedPerson] = React.useState([])
+  const [messages, setMessages] = React.useState([])
 
-  const [message, setMessage] = React.useState('');
-  const { user } = useUserAuth();  
+  const [message, setMessage] = React.useState('')
+  const { user } = useUserAuth()
+
+  const scrollToBottom = () => {
+    var objDiv = document.getElementById('boxData')
+    objDiv.scrollTop = objDiv.scrollHeight
+  }
+
+  React.useEffect(() => {
+    scrollToBottom()
+  }, [messages])
 
   React.useEffect(() => {
     if (user.uid) {
-      const q = query(collection(db, 'users'), where(documentId(), '!=', user?.uid));
+      const q = query(
+        collection(db, 'users'),
+        where(documentId(), '!=', user?.uid),
+      )
       onSnapshot(q, (querySnapshot) => {
         setAllUsers(
           querySnapshot.docs.map((document) => {
             return {
               data: document.data(),
-            };
-          })
-        );
-      });
+            }
+          }),
+        )
+      })
     }
-  }, [user]);
+  }, [user])
 
   function getMessages(roomId) {
     return onSnapshot(
-      query(collection(db, 'chats', roomId, 'messages'), orderBy('time', 'asc'), limit(30)),
+      query(
+        collection(db, 'chats', roomId, 'messages'),
+        orderBy('time', 'asc'),
+        limit(30),
+      ),
       (querySnapshot) => {
         const messages = querySnapshot.docs.map((doc) => {
           return {
             id: doc.id,
             ...doc.data(),
-          };
-        });
-        setMessages(messages);
-      }
-    );
+          }
+        })
+        setMessages(messages)
+      },
+    )
   }
 
   const handlePersonChat = async (person) => {
@@ -186,44 +210,45 @@ export default function Chat() {
     // } catch (error) {
     //   console.error(error);
     // }
-  };
+  }
 
   const sendMsg = async (e) => {
-    e.preventDefault();
-    const msg = message.trim();
+    e.preventDefault()
+
+    const msg = message.trim()
     if (msg) {
       const msgObj = {
         time: Timestamp.now(),
         message: msg,
         sender: user.uid,
         receiver: selectedPerson.data.uid,
-      };
-      console.log({ msgObj });
-      setMessages((oldArray) => [...oldArray, msgObj]);
-      try {
-        await addDoc(collection(db, 'chats', roomId, 'messages'), msgObj);
-      } catch (error) {
-        console.error(error);
       }
-      setMessage('');
+      console.log({ msgObj })
+      setMessages((oldArray) => [...oldArray, msgObj])
+      try {
+        await addDoc(collection(db, 'chats', roomId, 'messages'), msgObj)
+      } catch (error) {
+        console.error(error)
+      }
+      setMessage('')
     } else {
-      setMessage('');
+      setMessage('')
     }
-  };
+  }
 
   return (
     <Box sx={{ display: 'flex', height: '100%', position: 'relative' }}>
       <CssBaseline />
       <DrawerWithNav allUsers={allUsers} handlePersonChat={handlePersonChat} />
       <Box
-        component='main'
+        component="main"
         sx={(theme) => ({
           flexGrow: 1,
           [theme.breakpoints.down('sm')]: {
             marginLeft: '65px',
           },
           position: 'relative',
-          overflow: 'hidden',
+          // overflow: 'hidden',
           maxWidth: '1024px',
           mx: 'auto',
         })}
@@ -238,72 +263,95 @@ export default function Chat() {
             })}
           >
             <CardHeader
-              avatar={<Avatar src={selectedPerson?.data?.profile_pictures} aria-label='recipe' />}
+              avatar={
+                <Avatar
+                  src={selectedPerson?.data?.profile_pictures}
+                  aria-label="recipe"
+                />
+              }
               sx={{ p: 0, mb: 1.5 }}
               title={selectedPerson?.data?.displayName}
             />
             <Divider />
           </Box>
         ) : null}
-        {selectedPerson?.data ? (
-          <Box
-            sx={{
-              height: 'calc(100vh - 197px)',
-              pt: 1.5,
-              display: 'flex',
-              flexDirection: 'column',
-              overflow: "auto"
-            }}
-          >
-            <Box
-              sx={{
-                flex: 1,
-                px: 3,
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'flex-end',
-                mb: 2,
-              }}
-              className='msgWrapper'
-            >
-              {messages?.map((msg, i) => {
-                return (
-                  <Box
-                    key={i}
-                    className={msg.sender === user.uid ? 'myMessage' : 'notMyMessage'}
-                    sx={{
-                      alignSelf: msg.sender === user.uid ? 'end' : 'flex-start',
-                      my: 0.3,
-                      maxWidth: '80%',
-                    }}
-                  >
-                    <Chip
-                      color={msg.sender === user.uid ? 'primary' : 'secondary'}
-                      label={
-                        <Box display='flex' flexDirection='column'>
-                          <span style={{ fontWeight: '500' }}>{msg.message}</span>
-                          <Typography variant='body2' color='burlywood' fontWeight={'bold'}>
-                            {moment(msg.time.toDate().toDateString()).format('D-MMM-YY, h:mm a')}
-                          </Typography>
-                        </Box>
+        <Box
+          sx={{
+            height: 'calc(100vh - 197px)',
+            pt: 1.5,
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'auto',
+          }}
+          id="boxData"
+        >
+          {selectedPerson?.data ? (
+            <Box>
+              <Box
+                sx={{
+                  flex: 1,
+                  px: 3,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'flex-end',
+                  mb: 2,
+                }}
+                className="msgWrapper"
+              >
+                {messages?.map((msg, i) => {
+                  return (
+                    <Box
+                      key={i}
+                      className={
+                        msg.sender === user.uid ? 'myMessage' : 'notMyMessage'
                       }
                       sx={{
-                        fontSize: 'large',
-                        height: 'auto',
-                        p: 1,
-                        borderTopRightRadius: msg.sender === user.uid ? '0px' : '16px',
-                        borderTopLeftRadius: msg.sender !== user.uid ? '0px' : '16px',
-                        '& span': {
-                          whiteSpace: 'normal',
-                        },
+                        alignSelf:
+                          msg.sender === user.uid ? 'end' : 'flex-start',
+                        my: 0.3,
+                        maxWidth: '80%',
                       }}
-                    />
-                  </Box>
-                );
-              })}
+                    >
+                      <Chip
+                        color={
+                          msg.sender === user.uid ? 'primary' : 'secondary'
+                        }
+                        label={
+                          <Box display="flex" flexDirection="column">
+                            <span style={{ fontWeight: '500' }}>
+                              {msg.message}
+                            </span>
+                            <Typography
+                              variant="body2"
+                              color="burlywood"
+                              fontWeight={'bold'}
+                            >
+                              {moment(msg.time.toDate().toDateString()).format(
+                                'D-MMM-YY, h:mm a',
+                              )}
+                            </Typography>
+                          </Box>
+                        }
+                        sx={{
+                          fontSize: 'large',
+                          height: 'auto',
+                          p: 1,
+                          borderTopRightRadius:
+                            msg.sender === user.uid ? '0px' : '16px',
+                          borderTopLeftRadius:
+                            msg.sender !== user.uid ? '0px' : '16px',
+                          '& span': {
+                            whiteSpace: 'normal',
+                          },
+                        }}
+                      />
+                    </Box>
+                  )
+                })}
+              </Box>
             </Box>
-          </Box>
-        ) : null}
+          ) : null}
+        </Box>
         {selectedPerson?.data ? (
           <form
             onSubmit={sendMsg}
@@ -317,18 +365,18 @@ export default function Chat() {
               paddingBottom: '10px',
             }}
           >
-            <Box display='flex' sx={{ px: 1, alignItems: 'center', mb: 0.5 }}>
+            <Box display="flex" sx={{ px: 1, alignItems: 'center', mb: 0.5 }}>
               <Box sx={{ mr: 1, flex: 1 }}>
                 <TextField
-                  variant='outlined'
+                  variant="outlined"
                   value={message}
-                  label='Type message'
+                  label="Type message"
                   sx={{ width: '100%' }}
                   onChange={(e) => setMessage(e.target.value)}
                 />
               </Box>
               <Box sx={{ mr: 1, height: '100%' }}>
-                <Fab color='primary' aria-label='send' type='submit'>
+                <Fab color="primary" aria-label="send" type="submit">
                   <SendIcon />
                 </Fab>
               </Box>
@@ -337,5 +385,5 @@ export default function Chat() {
         ) : null}
       </Box>
     </Box>
-  );
+  )
 }
