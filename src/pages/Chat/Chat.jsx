@@ -221,6 +221,7 @@ export default function Chat() {
     }
   };
 
+
   return (
     <Box sx={{ display: 'flex', height: '100%', position: 'relative' }}>
       <CssBaseline />
