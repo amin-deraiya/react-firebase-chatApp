@@ -295,7 +295,7 @@ export default function Chat() {
                         <Box display='flex' flexDirection='column'>
                           <span style={{ fontWeight: '500' }}>{msg.message}</span>
                           <Typography variant='body2' color='burlywood' fontWeight={'bold'}>
-                            {moment(msg.time.toDate().toDateString()).format('D-MMM-YY, h:mm a')}
+                            {moment(msg.time.toDate().toString()).format('D-MMM-YY, h:mm a')}
                           </Typography>
                         </Box>
                       }
