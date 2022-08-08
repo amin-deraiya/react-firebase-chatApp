@@ -12,12 +12,13 @@ import {
   collection,
   query,
   onSnapshot,
-  where,
-  documentId,
   Timestamp,
   addDoc,
   orderBy,
-  limit,
+  updateDoc,
+  doc,
+  getDoc,
+  setDoc,
 } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { DrawerWithNav } from './components/DrawerWithNav';
@@ -121,11 +122,10 @@ export const StyledBadge = styled(Badge)(({ theme }) => ({
 }));
 
 export default function Chat() {
-  const [allUsers, setAllUsers] = React.useState([]);
   const [roomId, setRoomId] = React.useState('');
+  // console.log({roomId});
   const [selectedPerson, setSelectedPerson] = React.useState([]);
   const [messages, setMessages] = React.useState([]);
-
   const [message, setMessage] = React.useState('');
   const { user } = useUserAuth();
 
@@ -136,28 +136,9 @@ export default function Chat() {
     }
   };
 
-  React.useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  React.useEffect(() => {
-    if (user.uid) {
-      const q = query(collection(db, 'users'), where(documentId(), '!=', user?.uid));
-      onSnapshot(q, (querySnapshot) => {
-        setAllUsers(
-          querySnapshot.docs.map((document) => {
-            return {
-              data: document.data(),
-            };
-          })
-        );
-      });
-    }
-  }, [user]);
-
   function getMessages(roomId) {
     return onSnapshot(
-      query(collection(db, 'chats', roomId, 'messages'), orderBy('time', 'asc'), limit(30)),
+      query(collection(db, 'chats', roomId, 'messages'), orderBy('time', 'asc')),
       (querySnapshot) => {
         const messages = querySnapshot.docs.map((doc) => {
           return {
@@ -173,34 +154,60 @@ export default function Chat() {
   const handlePersonChat = async (person) => {
     let roomid = [user.uid, person.data.uid].sort();
     roomid = roomid[0] + roomid[1];
-    setSelectedPerson(person);
     setRoomId(roomid);
+    setSelectedPerson(person);
     getMessages(roomid);
-    // try {
-    //   // setDoc(doc(db, 'users', user.uid), {
+    scrollToBottom();
 
-    //   await setDoc(doc(db, 'chats', roomId), {
-    //     roomDetail: [
-    //       {
-    //         name: user.displayName,
-    //         uid: user.uid,
-    //         unreadCound: 0,
-    //       },
-    //       {
-    //         name: person.data.displayName,
-    //         uid: person.data.uid,
-    //         unreadCound: 0,
-    //       },
-    //     ],
-    //   });
-    // } catch (error) {
-    //   console.error(error);
-    // }
+    const chats_ref = doc(db, 'chats', roomid);
+    const myId = user.uid;
+    const docSnap = await getDoc(chats_ref);
+
+    if (docSnap.exists()) {
+      updateDoc(chats_ref, {
+        [myId]: {
+          unread_count: 0,
+        },
+      });
+    } else {
+      await setDoc(chats_ref, {
+        [myId]: {
+          unread_count: 0,
+        },
+      });
+    }
+  };
+
+  const updateUnreadCount = async () => {
+    const chats_ref = doc(db, 'chats', roomId);
+    const partnerId = selectedPerson.data.uid;
+    const docSnap = await getDoc(chats_ref);
+
+    if (docSnap.exists()) {
+      let roomDetail = docSnap.data();
+      let partnerUnreadCount = roomDetail && roomDetail[partnerId] && roomDetail[partnerId].unread_count;
+      updateDoc(chats_ref, {
+        [partnerId]: {
+          unread_count: partnerUnreadCount ? partnerUnreadCount + 1 : 1,
+        },
+      }).then(() => {
+        console.log('unread count added');
+      });
+    } else {
+      await setDoc(chats_ref, {
+        [partnerId]: {
+          unread_count: 1,
+        },
+      }).then(() => {
+        console.log('unread count added');
+      });
+    }
   };
 
   const sendMsg = async (e) => {
     e.preventDefault();
     const msg = message.trim();
+    // setUsers();
     if (msg) {
       const msgObj = {
         time: Timestamp.now(),
@@ -208,8 +215,9 @@ export default function Chat() {
         sender: user.uid,
         receiver: selectedPerson.data.uid,
       };
-      console.log({ msgObj });
       setMessages((oldArray) => [...oldArray, msgObj]);
+      updateUnreadCount();
+      scrollToBottom();
       try {
         await addDoc(collection(db, 'chats', roomId, 'messages'), msgObj);
       } catch (error) {
@@ -221,11 +229,10 @@ export default function Chat() {
     }
   };
 
-
   return (
     <Box sx={{ display: 'flex', height: '100%', position: 'relative' }}>
       <CssBaseline />
-      <DrawerWithNav allUsers={allUsers} handlePersonChat={handlePersonChat} />
+      <DrawerWithNav handlePersonChat={handlePersonChat} />
       <Box
         component='main'
         sx={(theme) => ({

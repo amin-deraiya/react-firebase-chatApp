@@ -10,14 +10,19 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import { Avatar, Menu, MenuItem, Tooltip } from '@mui/material';
+import { Avatar, Chip, Menu, MenuItem, Tooltip } from '@mui/material';
 import { Drawer, DrawerHeader, StyledBadge, AppBar } from '../Chat';
 import { useUserAuth } from '../../../context/userAuthContext';
+import { collection, doc, documentId, getDoc, onSnapshot, query, where } from 'firebase/firestore';
+import { db } from '../../../firebase';
 
 export function DrawerWithNav(props) {
   const [open, setOpen] = React.useState(true);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
+  const [allUsers, setAllUsers] = React.useState([]);
+
   const { user, logOut } = useUserAuth();
+  console.log({ user });
 
   const handleOpenUserMenu = (event) => {
     setAnchorElUser(event.currentTarget);
@@ -37,6 +42,76 @@ export function DrawerWithNav(props) {
 
   const handleDrawerClose = () => {
     setOpen(false);
+  };
+
+  React.useEffect(() => {
+    setUsers();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
+  const setUsers = async () => {
+    if (user.uid) {
+      const q = query(collection(db, 'users'), where(documentId(), '!=', user?.uid));
+      onSnapshot(q, (querySnapshot) => {
+        let dt = [];
+        querySnapshot.docs.map(async (document) => {
+          let roomid = [user.uid, document.data().uid].sort();
+          roomid = roomid[0] + roomid[1];
+
+          // const q = query(collection(db, 'chats'), where(documentId(), '==', roomid));
+          // onSnapshot(q, (qSnapshot) => {
+          //   var dtt = qSnapshot.docs.map((doc) => {
+          //     // doc.data() is never undefined for query doc snapshots
+          //     console.log(' => ', doc.data());
+          //     if (doc.data()) {
+          //       console.log(' -> ', doc.data());
+          //       let roomDetail = doc.data();
+          //       let documentData = document.data();
+          //       documentData.roomDetail = roomDetail;
+          //       // dt.push({ data: documentData });
+          //       console.log({documentData});
+          //       return {
+          //         data: documentData,
+          //       };
+          //     } else {
+          //       console.log('not exist');
+          //       dt.push({ data: document.data() });
+          //       return {
+          //         data: document.data(),
+          //       };
+          //     }
+          //   });
+          // });
+
+          const chats_ref = doc(db, 'chats', roomid);
+          await getDoc(chats_ref)
+            .then((res) => {
+              if (res.exists()) {
+                console.log(' -> ', res.data());
+                let roomDetail = res.data();
+                let documentData = document.data();
+                documentData.roomDetail = roomDetail;
+                dt.push({ data: documentData });
+                return {
+                  data: documentData,
+                };
+              } else {
+                console.log('not exist');
+                dt.push({ data: document.data() });
+                return {
+                  data: document.data(),
+                };
+              }
+            })
+            .catch((err) => {
+              console.log('something went wrong', err);
+            });
+          const arrUniq = [...new Map(dt.map((v) => [v.data.uid, v])).values()];
+          console.log({ arrUniq });
+          setAllUsers(arrUniq);
+        });
+      });
+    }
   };
 
   return (
@@ -62,51 +137,64 @@ export function DrawerWithNav(props) {
         </DrawerHeader>
         <Divider />
         <List>
-          {props.allUsers?.map((item, index) => (
-            <ListItem
-              key={index}
-              disablePadding
-              sx={{
-                display: 'block',
-              }}
-            >
-              <ListItemButton
+          {allUsers?.map((item, index) => {
+            const unreadCount = item?.data?.roomDetail
+              ? typeof item?.data?.roomDetail[user?.uid]?.unread_count === 'number'
+                ? item?.data?.roomDetail[user?.uid]?.unread_count
+                : 0
+              : 0;
+            return (
+              <ListItem
+                key={index}
+                disablePadding
                 sx={{
-                  minHeight: 48,
-                  justifyContent: open ? 'initial' : 'center',
-                  px: 2.5,
-                }}
-                onClick={() => {
-                  props.handlePersonChat(item);
-                  setOpen(false);
+                  display: 'block',
                 }}
               >
-                <ListItemIcon
+                <ListItemButton
                   sx={{
-                    minWidth: 0,
-                    mr: open ? 3 : 'auto',
-                    justifyContent: 'center',
+                    minHeight: 48,
+                    justifyContent: open ? 'initial' : 'center',
+                    px: 2.5,
+                  }}
+                  onClick={() => {
+                    props.handlePersonChat(item);
+                    setOpen(false);
                   }}
                 >
-                  <StyledBadge
-                    overlap='circular'
-                    anchorOrigin={{
-                      vertical: 'bottom',
-                      horizontal: 'right',
-                    }} // variant='dot'
+                  <ListItemIcon
+                    sx={{
+                      minWidth: 0,
+                      mr: open ? 3 : 'auto',
+                      justifyContent: 'center',
+                    }}
                   >
-                    <Avatar alt='Remy Sharp' src={item?.data?.profile_pictures} />
-                  </StyledBadge>
-                </ListItemIcon>
-                <ListItemText
-                  primary={item?.data?.displayName?.split(' ')[0]}
-                  sx={{
-                    opacity: open ? 1 : 0,
-                  }}
-                />
-              </ListItemButton>
-            </ListItem>
-          ))}
+                    <StyledBadge
+                      overlap='circular'
+                      anchorOrigin={{
+                        vertical: 'bottom',
+                        horizontal: 'right',
+                      }} // variant='dot'
+                    >
+                      <Avatar alt='' src={item?.data?.profile_pictures} />
+                    </StyledBadge>
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={item?.data?.displayName?.split(' ')[0]}
+                    sx={{
+                      opacity: open ? 1 : 0,
+                    }}
+                  />
+                  <Chip
+                    label={unreadCount}
+                    color={unreadCount > 0 ? 'primary' : 'secondary'}
+                    sx={{ display: open ? 'flex' : 'none' }}
+                    variant='outlined'
+                  />
+                </ListItemButton>
+              </ListItem>
+            );
+          })}
         </List>
         {/* <Divider />
           <List>
