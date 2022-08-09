@@ -105,6 +105,9 @@ export function DrawerWithNav(props) {
         variant='permanent'
         open={open}
         sx={(theme) => ({
+          '.MuiDrawer-paper': {
+            backgroundColor: 'transparent',
+          },
           [theme.breakpoints.down('sm')]: {
             '.MuiDrawer-paper': {
               boxShadow: 'rgb(0 0 0 / 15%) 2.95px 1.95px 8.6px',

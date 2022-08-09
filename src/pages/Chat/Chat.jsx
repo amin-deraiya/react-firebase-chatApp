@@ -5,9 +5,20 @@ import MuiDrawer from '@mui/material/Drawer';
 import MuiAppBar from '@mui/material/AppBar';
 import CssBaseline from '@mui/material/CssBaseline';
 import Divider from '@mui/material/Divider';
-import SendIcon from '@mui/icons-material/Send';
-import { Avatar, Badge, CardHeader, Chip, Fab, TextField, Typography } from '@mui/material';
+import {
+  Avatar,
+  Badge,
+  CardHeader,
+  Chip,
+  FormControl,
+  IconButton,
+  InputAdornment,
+  InputLabel,
+  OutlinedInput,
+  Typography,
+} from '@mui/material';
 import { useUserAuth } from '../../context/userAuthContext';
+import TelegramIcon from '@mui/icons-material/Telegram';
 import {
   collection,
   query,
@@ -245,7 +256,7 @@ export default function Chat() {
           flexGrow: 1,
           [theme.breakpoints.down('sm')]: {
             marginLeft: '65px',
-            filter: open ? 'blur(5px)' : 'blur(0px)',
+            filter: open ? 'blur(50px)' : 'blur(0px)',
           },
           position: 'relative',
           overflow: 'hidden',
@@ -347,19 +358,28 @@ export default function Chat() {
           >
             <Box display='flex' sx={{ px: 1, alignItems: 'center', mb: 0.5, width: '100%' }}>
               <Box sx={{ mr: 1, flex: 1 }}>
-                <TextField
-                  variant='outlined'
-                  value={message}
-                  label='Type message'
-                  sx={{ width: '100%' }}
-                  onChange={(e) => setMessage(e.target.value)}
-                />
+                <FormControl sx={{ m: 1, width: '100%' }} variant='outlined'>
+                  <InputLabel htmlFor='outlined-adornment-password'>Message</InputLabel>
+                  <OutlinedInput
+                    value={message}
+                    sx={{ width: '100%' }}
+                    onChange={(e) => setMessage(e.target.value)}
+                    endAdornment={
+                      <InputAdornment position='end'>
+                        <IconButton type='submit' edge='end'>
+                          <TelegramIcon />
+                        </IconButton>
+                      </InputAdornment>
+                    }
+                    label='Message'
+                  />
+                </FormControl>
               </Box>
-              <Box sx={{ mr: 1, height: '100%' }}>
+              {/* <Box sx={{ mr: 1, height: '100%' }}>
                 <Fab color='primary' aria-label='send' type='submit'>
                   <SendIcon />
                 </Fab>
-              </Box>
+              </Box> */}
             </Box>
           </form>
         ) : null}
