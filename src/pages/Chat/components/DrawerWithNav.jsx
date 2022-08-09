@@ -176,7 +176,7 @@ export function DrawerWithNav(props) {
                   <Chip
                     label={unreadCount}
                     color={unreadCount > 0 ? 'primary' : 'secondary'}
-                    sx={{ display: open ? 'flex' : 'none' }}
+                    sx={{ display: open && unreadCount > 0 ? 'flex' : 'none' }}
                     // variant='outlined'
                   />
                 </ListItemButton>
