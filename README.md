@@ -3,7 +3,7 @@ Penguins Chat using React Js, Firebase v9 and material ui with Google Login
 
 Live [demo](https://penguine-chat.netlify.app/)
 
-![Screenshot](https://i.postimg.cc/sDMcfGZK/demoimage.png)
+[![Screenshot-2022-08-09-at-2-05-05-PM.png](https://i.postimg.cc/YSKZxKgR/Screenshot-2022-08-09-at-2-05-05-PM.png)](https://postimg.cc/9DbLWkLw)
 
 Quick Start:
 ------------
