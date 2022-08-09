@@ -16,9 +16,7 @@ const userAuthContext = createContext();
 export function UserAuthContextProvider({ children }) {
   const [user, setUser] = useState({});
   const [loading, setLoading] = useState(true);
-  const currUser = auth.currentUser;
   const navigate = useNavigate();
-  console.log({ currUser });
 
   function logOut() {
     return signOut(auth);
@@ -36,7 +34,6 @@ export function UserAuthContextProvider({ children }) {
   }
 
   useEffect(() => {
-    console.log(user?.uid, 'user?.uid');
     if (user?.uid) {
       const q = query(collection(db, 'users'), where(documentId(), '==', user?.uid));
       onSnapshot(q, (querySnapshot) => {
@@ -87,7 +84,6 @@ export function UserAuthContextProvider({ children }) {
   useEffect(() => {
     setLoading(true);
     const unsubscribe = onAuthStateChanged(auth, (currentuser) => {
-      console.log('Auth', currentuser);
       setUser(currentuser);
       setLoading(false);
     });

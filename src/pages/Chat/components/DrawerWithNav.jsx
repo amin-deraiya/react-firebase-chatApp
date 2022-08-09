@@ -15,13 +15,13 @@ import { Drawer, DrawerHeader, StyledBadge, AppBar } from '../Chat';
 import { useUserAuth } from '../../../context/userAuthContext';
 import { collection, documentId, onSnapshot, query, where } from 'firebase/firestore';
 import { db } from '../../../firebase';
+import { useDrawer } from '../../../context/drawerContext';
 
 export function DrawerWithNav(props) {
-  const [open, setOpen] = React.useState(true);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
   const [allUsers, setAllUsers] = React.useState([]);
   const [allRoomIds, setAllRoomIds] = React.useState([]);
-
+  const { open, setOpen } = useDrawer();
   const { user, logOut } = useUserAuth();
 
   const handleOpenUserMenu = (event) => {
@@ -64,15 +64,13 @@ export function DrawerWithNav(props) {
                 return item;
               }
             });
-            const arrUniq = [...new Map(finalData.map(v => [v.data.uid, v])).values()]
-            setAllUsers(arrUniq)
-            console.log({finalData});
-            console.log({ roomDetail });
+            const arrUniq = [...new Map(finalData.map((v) => [v.data.uid, v])).values()];
+            setAllUsers(arrUniq);
           });
         });
       });
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allRoomIds]);
 
   const setUsers = async () => {
@@ -97,12 +95,23 @@ export function DrawerWithNav(props) {
     <Box
       className='wrapper'
       sx={(theme) => ({
+        boxShadow: 'rgb(0 0 0 / 15%) 2.95px 1.95px 8.6px',
         [theme.breakpoints.down('sm')]: {
           position: 'absolute',
         },
       })}
     >
-      <Drawer variant='permanent' open={open}>
+      <Drawer
+        variant='permanent'
+        open={open}
+        sx={(theme) => ({
+          [theme.breakpoints.down('sm')]: {
+            '.MuiDrawer-paper': {
+              boxShadow: 'rgb(0 0 0 / 15%) 2.95px 1.95px 8.6px',
+            },
+          },
+        })}
+      >
         <DrawerHeader
           sx={{
             justifyContent: 'flex-start',
@@ -206,6 +215,7 @@ export function DrawerWithNav(props) {
         open={open}
         sx={(theme) => ({
           boxShadow: 'none',
+          mr: '1px',
           [theme.breakpoints.down('sm')]: {
             width: open ? 'calc(100% - 48px)' : '100%',
           },

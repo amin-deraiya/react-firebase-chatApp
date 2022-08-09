@@ -24,6 +24,7 @@ import { db } from '../../firebase';
 import { DrawerWithNav } from './components/DrawerWithNav';
 import moment from 'moment';
 import './chat.css';
+import { useDrawer } from '../../context/drawerContext';
 
 const drawerWidth = 240;
 
@@ -127,6 +128,7 @@ export default function Chat() {
   const [selectedPerson, setSelectedPerson] = React.useState([]);
   const [messages, setMessages] = React.useState([]);
   const [message, setMessage] = React.useState('');
+  const { open, setOpen } = useDrawer();
   const { user } = useUserAuth();
 
   const scrollToBottom = () => {
@@ -157,7 +159,6 @@ export default function Chat() {
     setRoomId(roomid);
     setSelectedPerson(person);
     getMessages(roomid);
-    
 
     const chats_ref = doc(db, 'chats', roomid);
     const myId = user.uid;
@@ -194,7 +195,7 @@ export default function Chat() {
           unread_count: partnerUnreadCount ? partnerUnreadCount + 1 : 1,
         },
       }).then(() => {
-        console.log('unread count added');
+        // console.log('unread count added');
       });
     } else {
       await setDoc(chats_ref, {
@@ -244,17 +245,20 @@ export default function Chat() {
           flexGrow: 1,
           [theme.breakpoints.down('sm')]: {
             marginLeft: '65px',
+            filter: open ? 'blur(5px)' : 'blur(0px)',
           },
           position: 'relative',
           overflow: 'hidden',
           maxWidth: '1024px',
           mx: 'auto',
         })}
+        onClick={() => setOpen(false)}
       >
         <DrawerHeader />
         {selectedPerson?.data ? (
           <Box
             sx={(theme) => ({
+              pt: 1,
               [theme.breakpoints.down('lg')]: {
                 px: 2,
               },
@@ -262,7 +266,7 @@ export default function Chat() {
           >
             <CardHeader
               avatar={<Avatar src={selectedPerson?.data?.profile_pictures} aria-label='recipe' />}
-              sx={{ p: 0, mb: 1.5 }}
+              sx={{ p: 0, mb: 0.5 }}
               title={selectedPerson?.data?.displayName}
             />
             <Divider />
@@ -332,7 +336,7 @@ export default function Chat() {
           <form
             onSubmit={sendMsg}
             style={{
-              position: 'fixed',
+              position: 'relative',
               bottom: 0,
               width: '100%',
               maxWidth: '1024px',
@@ -341,7 +345,7 @@ export default function Chat() {
               paddingBottom: '10px',
             }}
           >
-            <Box display='flex' sx={{ px: 1, alignItems: 'center', mb: 0.5 }}>
+            <Box display='flex' sx={{ px: 1, alignItems: 'center', mb: 0.5, width: '100%' }}>
               <Box sx={{ mr: 1, flex: 1 }}>
                 <TextField
                   variant='outlined'
