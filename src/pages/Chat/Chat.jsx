@@ -157,7 +157,7 @@ export default function Chat() {
     setRoomId(roomid);
     setSelectedPerson(person);
     getMessages(roomid);
-    scrollToBottom();
+    
 
     const chats_ref = doc(db, 'chats', roomid);
     const myId = user.uid;
@@ -176,6 +176,9 @@ export default function Chat() {
         },
       });
     }
+    setTimeout(() => {
+      scrollToBottom();
+    }, 500);
   };
 
   const updateUnreadCount = async () => {
@@ -217,7 +220,9 @@ export default function Chat() {
       };
       setMessages((oldArray) => [...oldArray, msgObj]);
       updateUnreadCount();
-      scrollToBottom();
+      setTimeout(() => {
+        scrollToBottom();
+      }, 100);
       try {
         await addDoc(collection(db, 'chats', roomId, 'messages'), msgObj);
       } catch (error) {

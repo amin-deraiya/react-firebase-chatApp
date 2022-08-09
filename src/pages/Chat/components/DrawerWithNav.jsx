@@ -13,16 +13,16 @@ import ListItemText from '@mui/material/ListItemText';
 import { Avatar, Chip, Menu, MenuItem, Tooltip } from '@mui/material';
 import { Drawer, DrawerHeader, StyledBadge, AppBar } from '../Chat';
 import { useUserAuth } from '../../../context/userAuthContext';
-import { collection, doc, documentId, getDoc, onSnapshot, query, where } from 'firebase/firestore';
+import { collection, documentId, onSnapshot, query, where } from 'firebase/firestore';
 import { db } from '../../../firebase';
 
 export function DrawerWithNav(props) {
   const [open, setOpen] = React.useState(true);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
   const [allUsers, setAllUsers] = React.useState([]);
+  const [allRoomIds, setAllRoomIds] = React.useState([]);
 
   const { user, logOut } = useUserAuth();
-  console.log({ user });
 
   const handleOpenUserMenu = (event) => {
     setAnchorElUser(event.currentTarget);
@@ -46,70 +46,49 @@ export function DrawerWithNav(props) {
 
   React.useEffect(() => {
     setUsers();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
+
+  React.useEffect(() => {
+    if (allRoomIds?.length > 0) {
+      allRoomIds.forEach((roomid) => {
+        const q = query(collection(db, 'chats'), where(documentId(), '==', roomid));
+        onSnapshot(q, (qSnapshot) => {
+          qSnapshot.docs.forEach((doc) => {
+            let roomDetail = doc.data();
+            let finalData = allUsers.map((item) => {
+              if (item.data.roomIdWithMe === roomid) {
+                item.data.roomDetail = roomDetail;
+                return item;
+              } else {
+                return item;
+              }
+            });
+            const arrUniq = [...new Map(finalData.map(v => [v.data.uid, v])).values()]
+            setAllUsers(arrUniq)
+            console.log({finalData});
+            console.log({ roomDetail });
+          });
+        });
+      });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allRoomIds]);
 
   const setUsers = async () => {
     if (user.uid) {
       const q = query(collection(db, 'users'), where(documentId(), '!=', user?.uid));
       onSnapshot(q, (querySnapshot) => {
-        let dt = [];
-        querySnapshot.docs.map(async (document) => {
-          let roomid = [user.uid, document.data().uid].sort();
-          roomid = roomid[0] + roomid[1];
-
-          // const q = query(collection(db, 'chats'), where(documentId(), '==', roomid));
-          // onSnapshot(q, (qSnapshot) => {
-          //   var dtt = qSnapshot.docs.map((doc) => {
-          //     // doc.data() is never undefined for query doc snapshots
-          //     console.log(' => ', doc.data());
-          //     if (doc.data()) {
-          //       console.log(' -> ', doc.data());
-          //       let roomDetail = doc.data();
-          //       let documentData = document.data();
-          //       documentData.roomDetail = roomDetail;
-          //       // dt.push({ data: documentData });
-          //       console.log({documentData});
-          //       return {
-          //         data: documentData,
-          //       };
-          //     } else {
-          //       console.log('not exist');
-          //       dt.push({ data: document.data() });
-          //       return {
-          //         data: document.data(),
-          //       };
-          //     }
-          //   });
-          // });
-
-          const chats_ref = doc(db, 'chats', roomid);
-          await getDoc(chats_ref)
-            .then((res) => {
-              if (res.exists()) {
-                console.log(' -> ', res.data());
-                let roomDetail = res.data();
-                let documentData = document.data();
-                documentData.roomDetail = roomDetail;
-                dt.push({ data: documentData });
-                return {
-                  data: documentData,
-                };
-              } else {
-                console.log('not exist');
-                dt.push({ data: document.data() });
-                return {
-                  data: document.data(),
-                };
-              }
-            })
-            .catch((err) => {
-              console.log('something went wrong', err);
-            });
-          const arrUniq = [...new Map(dt.map((v) => [v.data.uid, v])).values()];
-          console.log({ arrUniq });
-          setAllUsers(arrUniq);
-        });
+        setAllUsers(
+          querySnapshot.docs.map((document) => {
+            let roomid = [user.uid, document.data().uid].sort();
+            roomid = roomid[0] + roomid[1];
+            setAllRoomIds((oldArray) => [...oldArray, roomid]);
+            const data = document.data();
+            data.roomIdWithMe = roomid;
+            return { data };
+          })
+        );
       });
     }
   };
@@ -189,7 +168,7 @@ export function DrawerWithNav(props) {
                     label={unreadCount}
                     color={unreadCount > 0 ? 'primary' : 'secondary'}
                     sx={{ display: open ? 'flex' : 'none' }}
-                    variant='outlined'
+                    // variant='outlined'
                   />
                 </ListItemButton>
               </ListItem>
