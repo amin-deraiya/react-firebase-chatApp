@@ -19,8 +19,9 @@ Quick Start:
 Additional Configuration:
 -------------------------
 
-On firebase console navigate to Firestore Database -> Rules -> Edit Rules 
-replace the entire code to this:
+1. Create Firestore Database
+2. On firebase console navigate to Firestore Database -> Rules -> Edit Rules 
+   replace the entire code to this:
 
 
 
