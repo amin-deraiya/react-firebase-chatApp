@@ -6,22 +6,45 @@ import { useUserAuth } from '../../context/userAuthContext';
 import './Login.css';
 
 export default function Login() {
-  const { googleSignInWithPopup, user, detectMob, googleSignIn } = useUserAuth();
+  const { googleSignInWithPopup, user, detectMob, googleSignIn, githubSignIn, githubSignInWithPopup } =
+    useUserAuth();
   const navigate = useNavigate();
 
-  const handleGoogleSignIn = async (e) => {
+  const handleSignIn = async (e, provider) => {
     e.preventDefault();
     if (detectMob()) {
       try {
-        await googleSignIn();
-        navigate('/chat');
+        switch (provider) {
+          case 'google':
+            await googleSignIn();
+            navigate('/chat');
+            break;
+
+          case 'github':
+            await githubSignIn();
+            navigate('/chat');
+            break;
+
+          default:
+            break;
+        }
       } catch (error) {
         console.log(error.message);
       }
     } else {
       try {
-        await googleSignInWithPopup();
-        // navigate('/');
+        switch (provider) {
+          case 'google':
+            await googleSignInWithPopup();
+            break;
+
+          case 'github':
+            await githubSignInWithPopup();
+            break;
+
+          default:
+            break;
+        }
       } catch (error) {
         console.log(error.message);
       }
@@ -42,7 +65,7 @@ export default function Login() {
           Penguins Chat
         </Typography>
         <Box width='100%'>
-          <div className='google-btn' role={'button'} onClick={handleGoogleSignIn}>
+          <div className='google-btn' role={'button'} onClick={(e) => handleSignIn(e, 'google')}>
             <div className='google-icon-wrapper'>
               <img
                 className='google-icon'
@@ -52,6 +75,16 @@ export default function Login() {
             </div>
             <p className='btn-text'>
               <b>Login with Google</b>
+            </p>
+          </div>
+        </Box>
+        <Box width='100%' mt={0.5}>
+          <div className='google-btn' style={{backgroundColor: "#03060a"}} role={'button'} onClick={(e) => handleSignIn(e, 'github')}>
+            <div className='google-icon-wrapper'>
+              <img className='google-icon' src='https://github.com/fluidicon.png' alt='Github' />
+            </div>
+            <p className='btn-text'>
+              <b>Login with Github</b>
             </p>
           </div>
         </Box>

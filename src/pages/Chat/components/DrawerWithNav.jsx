@@ -20,13 +20,28 @@ import { useDrawer } from '../../../context/drawerContext';
 export function DrawerWithNav(props) {
   const [anchorElUser, setAnchorElUser] = React.useState(null);
   const [allUsers, setAllUsers] = React.useState([]);
+  const [myObject, setMyObject] = React.useState([]);
+  console.log({ myObject });
   const [allRoomIds, setAllRoomIds] = React.useState([]);
   const { open, setOpen } = useDrawer();
   const { user, logOut } = useUserAuth();
-
   const handleOpenUserMenu = (event) => {
     setAnchorElUser(event.currentTarget);
   };
+
+  React.useEffect(() => {
+    if (user?.uid) {
+      const q = query(collection(db, 'users'), where(documentId(), '==', user.uid));
+      onSnapshot(q, (qSnapshot) => {
+        setMyObject(
+          qSnapshot.docs.map((doc) => {
+            console.log({ doc });
+            return doc.data();
+          })[0]
+        );
+      });
+    }
+  }, [user]);
 
   const handleCloseUserMenu = () => {
     setAnchorElUser(null);
@@ -277,7 +292,7 @@ export function DrawerWithNav(props) {
                 onClose={handleCloseUserMenu}
               >
                 <MenuItem onClick={handleCloseUserMenu}>
-                  <Typography textAlign='center'>{user.displayName}</Typography>
+                  <Typography textAlign='center'>{myObject.displayName}</Typography>
                 </MenuItem>
                 <MenuItem
                   onClick={() => {

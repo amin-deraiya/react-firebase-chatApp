@@ -5,6 +5,7 @@ import {
   GoogleAuthProvider,
   signInWithRedirect,
   signInWithPopup,
+  GithubAuthProvider,
 } from 'firebase/auth';
 import { auth, db } from '../firebase';
 import { collection, doc, documentId, onSnapshot, query, setDoc, Timestamp, where } from 'firebase/firestore';
@@ -15,6 +16,7 @@ const userAuthContext = createContext();
 
 export function UserAuthContextProvider({ children }) {
   const [user, setUser] = useState({});
+  console.log({ user });
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -22,15 +24,24 @@ export function UserAuthContextProvider({ children }) {
     return signOut(auth);
   }
 
-  function googleSignIn() {
+  async function googleSignIn() {
     const googleAuthProvider = new GoogleAuthProvider();
-    return signInWithRedirect(auth, googleAuthProvider)
-      .then((res) => {
-        console.log('res google', { res });
-      })
-      .catch((err) => {
-        alert(err.message);
-      });
+    try {
+      const res = await signInWithRedirect(auth, googleAuthProvider);
+      console.log('res google', { res });
+    } catch (err) {
+      alert(err.message);
+    }
+  }
+
+  async function githubSignIn() {
+    const githubAuthProvider = new GithubAuthProvider();
+    try {
+      const res = await signInWithRedirect(auth, githubAuthProvider);
+      console.log('res github', { res });
+    } catch (err) {
+      alert(err.message);
+    }
   }
 
   useEffect(() => {
@@ -58,7 +69,7 @@ export function UserAuthContextProvider({ children }) {
       try {
         setDoc(doc(db, 'users', user.uid), {
           uid: user.uid,
-          displayName: user.displayName,
+          displayName: user.displayName ? user.displayName : user.email.match(/^([^@]*)@/)[1],
           profile_pictures: user.photoURL,
           created_at: Timestamp.now(),
           email: user.email,
@@ -81,6 +92,13 @@ export function UserAuthContextProvider({ children }) {
       .catch((err) => alert(err.message));
   }
 
+  function githubSignInWithPopup() {
+    const githubAuthProvider = new GithubAuthProvider();
+    return signInWithPopup(auth, githubAuthProvider)
+      .then((result) => {})
+      .catch((err) => alert(err.message));
+  }
+
   useEffect(() => {
     setLoading(true);
     const unsubscribe = onAuthStateChanged(auth, (currentuser) => {
@@ -95,7 +113,16 @@ export function UserAuthContextProvider({ children }) {
 
   return (
     <userAuthContext.Provider
-      value={{ user, loading, googleSignIn, detectMob, googleSignInWithPopup, logOut }}
+      value={{
+        user,
+        loading,
+        googleSignIn,
+        githubSignIn,
+        detectMob,
+        googleSignInWithPopup,
+        githubSignInWithPopup,
+        logOut,
+      }}
     >
       {children}
     </userAuthContext.Provider>
