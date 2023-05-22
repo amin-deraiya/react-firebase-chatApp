@@ -16,7 +16,6 @@ const userAuthContext = createContext();
 
 export function UserAuthContextProvider({ children }) {
   const [user, setUser] = useState({});
-  console.log({ user });
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 

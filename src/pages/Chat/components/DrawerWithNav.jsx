@@ -21,7 +21,6 @@ export function DrawerWithNav(props) {
   const [anchorElUser, setAnchorElUser] = React.useState(null);
   const [allUsers, setAllUsers] = React.useState([]);
   const [myObject, setMyObject] = React.useState([]);
-  console.log({ myObject });
   const [allRoomIds, setAllRoomIds] = React.useState([]);
   const { open, setOpen } = useDrawer();
   const { user, logOut } = useUserAuth();
@@ -35,7 +34,6 @@ export function DrawerWithNav(props) {
       onSnapshot(q, (qSnapshot) => {
         setMyObject(
           qSnapshot.docs.map((doc) => {
-            console.log({ doc });
             return doc.data();
           })[0]
         );

@@ -135,7 +135,6 @@ export const StyledBadge = styled(Badge)(({ theme }) => ({
 
 export default function Chat() {
   const [roomId, setRoomId] = React.useState('');
-  // console.log({roomId});
   const [selectedPerson, setSelectedPerson] = React.useState([]);
   const [messages, setMessages] = React.useState([]);
   const [message, setMessage] = React.useState('');

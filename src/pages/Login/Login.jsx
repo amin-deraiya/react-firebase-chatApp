@@ -12,42 +12,23 @@ export default function Login() {
 
   const handleSignIn = async (e, provider) => {
     e.preventDefault();
-    if (detectMob()) {
-      try {
-        switch (provider) {
-          case 'google':
-            await googleSignIn();
-            navigate('/chat');
-            break;
+    try {
+      switch (provider) {
+        case 'google':
+          await detectMob() ? googleSignIn() : googleSignInWithPopup();
+          navigate('/chat');
+          break;
 
-          case 'github':
-            await githubSignIn();
-            navigate('/chat');
-            break;
+        case 'github':
+          await detectMob() ? githubSignIn() : githubSignInWithPopup();
+          navigate('/chat');
+          break;
 
-          default:
-            break;
-        }
-      } catch (error) {
-        console.log(error.message);
+        default:
+          break;
       }
-    } else {
-      try {
-        switch (provider) {
-          case 'google':
-            await googleSignInWithPopup();
-            break;
-
-          case 'github':
-            await githubSignInWithPopup();
-            break;
-
-          default:
-            break;
-        }
-      } catch (error) {
-        console.log(error.message);
-      }
+    } catch (error) {
+      console.log(error.message);
     }
   };
 
@@ -79,7 +60,7 @@ export default function Login() {
           </div>
         </Box>
         <Box width='100%' mt={0.5}>
-          <div className='google-btn' style={{backgroundColor: "#03060a"}} role={'button'} onClick={(e) => handleSignIn(e, 'github')}>
+          <div className='google-btn' style={{ backgroundColor: "#03060a" }} role={'button'} onClick={(e) => handleSignIn(e, 'github')}>
             <div className='google-icon-wrapper'>
               <img className='google-icon' src='https://github.com/fluidicon.png' alt='Github' />
             </div>
