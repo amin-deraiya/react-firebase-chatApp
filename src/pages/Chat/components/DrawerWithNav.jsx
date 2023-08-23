@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, { useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
 import List from '@mui/material/List';
@@ -10,23 +10,53 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import { Avatar, Chip, Menu, MenuItem, Tooltip } from '@mui/material';
+import { Avatar, Button, Chip, Menu, MenuItem, Tooltip } from '@mui/material';
 import { Drawer, DrawerHeader, StyledBadge, AppBar } from '../Chat';
 import { useUserAuth } from '../../../context/userAuthContext';
-import { collection, documentId, onSnapshot, query, where } from 'firebase/firestore';
+import {
+  collection,
+  documentId,
+  getCountFromServer,
+  limit,
+  onSnapshot,
+  query,
+  where,
+} from 'firebase/firestore';
 import { db } from '../../../firebase';
 import { useDrawer } from '../../../context/drawerContext';
 
 export function DrawerWithNav(props) {
-  const [anchorElUser, setAnchorElUser] = React.useState(null);
-  const [allUsers, setAllUsers] = React.useState([]);
-  const [myObject, setMyObject] = React.useState([]);
-  const [allRoomIds, setAllRoomIds] = React.useState([]);
+  /**
+   * @states
+   */
+  const [anchorElUser, setAnchorElUser] = useState(null);
+  const [allUsers, setAllUsers] = useState([]);
+  const [myObject, setMyObject] = useState([]);
+  const [allRoomIds, setAllRoomIds] = useState([]);
+  const [userLimit, setUserLimit] = useState(15);
+  const [totalUsers, setTotalUsers] = useState(0);
+
+  /**
+   * @variables
+   */
   const { open, setOpen } = useDrawer();
   const { user, logOut } = useUserAuth();
+
+  /**
+   * @functions
+   */
   const handleOpenUserMenu = (event) => {
     setAnchorElUser(event.currentTarget);
   };
+
+  useEffect(() => {
+    (async () => {
+      const coll = collection(db, 'users');
+      const snapshot = await getCountFromServer(coll);
+      const count = snapshot.data().count;
+      setTotalUsers(count);
+    })();
+  }, []);
 
   React.useEffect(() => {
     if (user?.uid) {
@@ -60,7 +90,7 @@ export function DrawerWithNav(props) {
   React.useEffect(() => {
     setUsers();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [user, userLimit]);
 
   React.useEffect(() => {
     if (allRoomIds?.length > 0) {
@@ -88,7 +118,7 @@ export function DrawerWithNav(props) {
 
   const setUsers = async () => {
     if (user.uid) {
-      const q = query(collection(db, 'users'), where(documentId(), '!=', user?.uid));
+      const q = query(collection(db, 'users'), where(documentId(), '!=', user?.uid), limit(userLimit));
       onSnapshot(q, (querySnapshot) => {
         setAllUsers(
           querySnapshot.docs.map((document) => {
@@ -106,7 +136,7 @@ export function DrawerWithNav(props) {
 
   return (
     <Box
-      className='wrapper'
+      className="wrapper"
       sx={(theme) => ({
         boxShadow: 'rgb(0 0 0 / 15%) 2.95px 1.95px 8.6px',
         [theme.breakpoints.down('sm')]: {
@@ -115,7 +145,7 @@ export function DrawerWithNav(props) {
       })}
     >
       <Drawer
-        variant='permanent'
+        variant="permanent"
         open={open}
         sx={(theme) => ({
           '.MuiDrawer-paper': {
@@ -174,13 +204,13 @@ export function DrawerWithNav(props) {
                     }}
                   >
                     <StyledBadge
-                      overlap='circular'
+                      overlap="circular"
                       anchorOrigin={{
                         vertical: 'bottom',
                         horizontal: 'right',
                       }} // variant='dot'
                     >
-                      <Avatar alt='' src={item?.data?.profile_pictures} />
+                      <Avatar alt="" src={item?.data?.profile_pictures} />
                     </StyledBadge>
                   </ListItemIcon>
                   <ListItemText
@@ -200,34 +230,16 @@ export function DrawerWithNav(props) {
             );
           })}
         </List>
-        {/* <Divider />
-          <List>
-          {['All mail', 'Trash', 'Spam'].map((text, index) => (
-           <ListItem key={text} disablePadding sx={{ display: 'block' }}>
-             <ListItemButton
-               sx={{
-                 minHeight: 48,
-                 justifyContent: open ? 'initial' : 'center',
-                 px: 2.5,
-               }}
-             >
-               <ListItemIcon
-                 sx={{
-                   minWidth: 0,
-                   mr: open ? 3 : 'auto',
-                   justifyContent: 'center',
-                 }}
-               >
-                 {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
-               </ListItemIcon>
-               <ListItemText primary={text} sx={{ opacity: open ? 1 : 0 }} />
-             </ListItemButton>
-           </ListItem>
-          ))}
-          </List> */}
+        {totalUsers >= userLimit && open && (
+          <Box mb={2} mt={0.5}>
+            <Button sx={{ width: '100%' }} onClick={() => setUserLimit((userLimit) => userLimit + 5)}>
+              Load more
+            </Button>
+          </Box>
+        )}
       </Drawer>
       <AppBar
-        position='fixed'
+        position="fixed"
         open={open}
         sx={(theme) => ({
           boxShadow: 'none',
@@ -239,10 +251,10 @@ export function DrawerWithNav(props) {
       >
         <Toolbar>
           <IconButton
-            color='inherit'
-            aria-label='open drawer'
+            color="inherit"
+            aria-label="open drawer"
             onClick={handleDrawerOpen}
-            edge='start'
+            edge="start"
             sx={{
               marginRight: 5,
               ...(open && {
@@ -252,8 +264,8 @@ export function DrawerWithNav(props) {
           >
             <MenuIcon />
           </IconButton>
-          <Box display='flex' justifyContent='space-between' width='100%'>
-            <Typography variant='h6' noWrap component='div'>
+          <Box display="flex" justifyContent="space-between" width="100%">
+            <Typography variant="h6" noWrap component="div">
               Penguins Chat
             </Typography>
             <Box
@@ -261,7 +273,7 @@ export function DrawerWithNav(props) {
                 flexGrow: 0,
               }}
             >
-              <Tooltip title='Open settings'>
+              <Tooltip title="Open settings">
                 <IconButton
                   onClick={handleOpenUserMenu}
                   sx={{
@@ -275,7 +287,7 @@ export function DrawerWithNav(props) {
                 sx={{
                   mt: '45px',
                 }}
-                id='menu-appbar'
+                id="menu-appbar"
                 anchorEl={anchorElUser}
                 anchorOrigin={{
                   vertical: 'top',
@@ -290,7 +302,7 @@ export function DrawerWithNav(props) {
                 onClose={handleCloseUserMenu}
               >
                 <MenuItem onClick={handleCloseUserMenu}>
-                  <Typography textAlign='center'>{myObject.displayName}</Typography>
+                  <Typography textAlign="center">{myObject.displayName}</Typography>
                 </MenuItem>
                 <MenuItem
                   onClick={() => {
@@ -298,7 +310,7 @@ export function DrawerWithNav(props) {
                     handleLogout();
                   }}
                 >
-                  <Typography textAlign='center'>Logout</Typography>
+                  <Typography textAlign="center">Logout</Typography>
                 </MenuItem>
               </Menu>
             </Box>
