@@ -170,16 +170,17 @@ export function DrawerWithNav(props) {
           </IconButton>
         </DrawerHeader>
         <Divider />
-        <List>
+        <List sx={{overflowY: 'auto'}}>
+          <>
           {allUsers?.map((item, index) => {
             const unreadCount = item?.data?.roomDetail
               ? typeof item?.data?.roomDetail[user?.uid]?.unread_count === 'number'
-                ? item?.data?.roomDetail[user?.uid]?.unread_count
-                : 0
+              ? item?.data?.roomDetail[user?.uid]?.unread_count
+              : 0
               : 0;
-            return (
+              return (
               <ListItem
-                key={index}
+              key={index}
                 disablePadding
                 sx={{
                   display: 'block',
@@ -195,21 +196,21 @@ export function DrawerWithNav(props) {
                     props.handlePersonChat(item);
                     setOpen(false);
                   }}
-                >
+                  >
                   <ListItemIcon
                     sx={{
                       minWidth: 0,
                       mr: open ? 3 : 'auto',
                       justifyContent: 'center',
                     }}
-                  >
+                    >
                     <StyledBadge
                       overlap="circular"
                       anchorOrigin={{
                         vertical: 'bottom',
                         horizontal: 'right',
                       }} // variant='dot'
-                    >
+                      >
                       <Avatar alt="" src={item?.data?.profile_pictures} />
                     </StyledBadge>
                   </ListItemIcon>
@@ -218,25 +219,26 @@ export function DrawerWithNav(props) {
                     sx={{
                       opacity: open ? 1 : 0,
                     }}
-                  />
+                    />
                   <Chip
                     label={unreadCount}
                     color={unreadCount > 0 ? 'primary' : 'secondary'}
                     sx={{ display: open && unreadCount > 0 ? 'flex' : 'none' }}
                     // variant='outlined'
-                  />
+                    />
                 </ListItemButton>
               </ListItem>
             );
           })}
-        </List>
-        {totalUsers >= userLimit && open && (
-          <Box mb={2} mt={0.5}>
+          <ListItem disablePadding>{totalUsers >= userLimit && open && (
+          <Box mb={2} mt={0.5} width={'100%'}>
             <Button sx={{ width: '100%' }} onClick={() => setUserLimit((userLimit) => userLimit + 5)}>
               Load more
             </Button>
           </Box>
-        )}
+        )}</ListItem>
+          </>
+        </List>
       </Drawer>
       <AppBar
         position="fixed"
