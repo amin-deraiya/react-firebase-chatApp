@@ -250,7 +250,7 @@ export default function Chat() {
       <CssBaseline />
       <DrawerWithNav handlePersonChat={handlePersonChat} />
       <Box
-        component='main'
+        component="main"
         sx={(theme) => ({
           flexGrow: 1,
           [theme.breakpoints.down('sm')]: {
@@ -275,7 +275,7 @@ export default function Chat() {
             })}
           >
             <CardHeader
-              avatar={<Avatar src={selectedPerson?.data?.profile_pictures} aria-label='recipe' />}
+              avatar={<Avatar src={selectedPerson?.data?.profile_pictures} aria-label="recipe" />}
               sx={{ p: 0, mb: 0.5 }}
               title={selectedPerson?.data?.displayName}
             />
@@ -291,7 +291,7 @@ export default function Chat() {
               flexDirection: 'column',
               overflow: 'auto',
             }}
-            id='boxData'
+            id="boxData"
           >
             <Box
               sx={{
@@ -302,7 +302,7 @@ export default function Chat() {
                 justifyContent: 'flex-end',
                 mb: 2,
               }}
-              className='msgWrapper'
+              className="msgWrapper"
             >
               {messages?.map((msg, i) => {
                 return (
@@ -318,9 +318,9 @@ export default function Chat() {
                     <Chip
                       color={msg.sender === user.uid ? 'primary' : 'secondary'}
                       label={
-                        <Box display='flex' flexDirection='column'>
+                        <Box display="flex" flexDirection="column">
                           <span style={{ fontWeight: '500' }}>{msg.message}</span>
-                          <Typography variant='body2' color='burlywood' fontWeight={'bold'}>
+                          <Typography variant="body2" color="burlywood" fontWeight={'bold'}>
                             {moment(msg.time.toDate().toString()).format('D-MMM-YY, h:mm a')}
                           </Typography>
                         </Box>
@@ -343,42 +343,26 @@ export default function Chat() {
           </Box>
         ) : null}
         {selectedPerson?.data ? (
-          <form
-            onSubmit={sendMsg}
-            style={{
-              position: 'relative',
-              bottom: 0,
-              width: '100%',
-              maxWidth: '1024px',
-              // backgroundColor: 'white',
-              paddingTop: '10px',
-              paddingBottom: '10px',
-            }}
-          >
-            <Box display='flex' sx={{ px: 1, alignItems: 'center', mb: 0.5, width: '100%' }}>
+          <form onSubmit={sendMsg} style={{ position: 'sticky', bottom: 0, left: 0 }}>
+            <Box display="flex" sx={{ px: 1, alignItems: 'center', mb: 0.5, width: '100%' }}>
               <Box sx={{ mr: 1, flex: 1 }}>
-                <FormControl sx={{ m: 1, width: '100%' }} variant='outlined'>
-                  <InputLabel htmlFor='outlined-adornment-password'>Message</InputLabel>
+                <FormControl sx={{ m: 1, width: '100%' }} variant="outlined">
+                  <InputLabel htmlFor="outlined-adornment-password">Message</InputLabel>
                   <OutlinedInput
                     value={message}
                     sx={{ width: '100%' }}
                     onChange={(e) => setMessage(e.target.value)}
                     endAdornment={
-                      <InputAdornment position='end'>
-                        <IconButton type='submit' edge='end'>
+                      <InputAdornment position="end">
+                        <IconButton type="submit" edge="end">
                           <TelegramIcon />
                         </IconButton>
                       </InputAdornment>
                     }
-                    label='Message'
+                    label="Message"
                   />
                 </FormControl>
               </Box>
-              {/* <Box sx={{ mr: 1, height: '100%' }}>
-                <Fab color='primary' aria-label='send' type='submit'>
-                  <SendIcon />
-                </Fab>
-              </Box> */}
             </Box>
           </form>
         ) : null}

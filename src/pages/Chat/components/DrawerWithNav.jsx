@@ -170,7 +170,7 @@ export function DrawerWithNav(props) {
           </IconButton>
         </DrawerHeader>
         <Divider />
-        <List sx={{overflowY: 'auto'}}>
+        <List sx={{overflowY: 'auto', overflowX: 'hidden'}}>
           <>
           {allUsers?.map((item, index) => {
             const unreadCount = item?.data?.roomDetail
@@ -258,7 +258,7 @@ export function DrawerWithNav(props) {
             onClick={handleDrawerOpen}
             edge="start"
             sx={{
-              marginRight: 5,
+              marginRight: 2,
               ...(open && {
                 display: 'none',
               }),
@@ -266,7 +266,7 @@ export function DrawerWithNav(props) {
           >
             <MenuIcon />
           </IconButton>
-          <Box display="flex" justifyContent="space-between" width="100%">
+          <Box display="flex" justifyContent="space-between" width="100%" alignItems={'center'}>
             <Typography variant="h6" noWrap component="div">
               Penguins Chat
             </Typography>
