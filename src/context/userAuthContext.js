@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from "react";
 import {
   onAuthStateChanged,
   signOut,
@@ -6,11 +6,20 @@ import {
   signInWithRedirect,
   signInWithPopup,
   GithubAuthProvider,
-} from 'firebase/auth';
-import { auth, db } from '../firebase';
-import { collection, doc, documentId, onSnapshot, query, setDoc, Timestamp, where } from 'firebase/firestore';
-import toast from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
+} from "firebase/auth";
+import { auth, db } from "../firebase";
+import {
+  collection,
+  doc,
+  documentId,
+  onSnapshot,
+  query,
+  setDoc,
+  Timestamp,
+  where,
+} from "firebase/firestore";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 const userAuthContext = createContext();
 
@@ -27,7 +36,7 @@ export function UserAuthContextProvider({ children }) {
     const googleAuthProvider = new GoogleAuthProvider();
     try {
       const res = await signInWithRedirect(auth, googleAuthProvider);
-      console.log('res google', { res });
+      console.log("res google", { res });
     } catch (err) {
       alert(err.message);
     }
@@ -37,7 +46,7 @@ export function UserAuthContextProvider({ children }) {
     const githubAuthProvider = new GithubAuthProvider();
     try {
       const res = await signInWithRedirect(auth, githubAuthProvider);
-      console.log('res github', { res });
+      console.log("res github", { res });
     } catch (err) {
       alert(err.message);
     }
@@ -45,7 +54,10 @@ export function UserAuthContextProvider({ children }) {
 
   useEffect(() => {
     if (user?.uid) {
-      const q = query(collection(db, 'users'), where(documentId(), '==', user?.uid));
+      const q = query(
+        collection(db, "users"),
+        where(documentId(), "==", user?.uid)
+      );
       onSnapshot(q, (querySnapshot) => {
         if (!querySnapshot.docs.length) {
           profileCreation(user);
@@ -56,7 +68,15 @@ export function UserAuthContextProvider({ children }) {
   }, [user]);
 
   function detectMob() {
-    const toMatch = [/Android/i, /webOS/i, /iPhone/i, /iPad/i, /iPod/i, /BlackBerry/i, /Windows Phone/i];
+    const toMatch = [
+      /Android/i,
+      /webOS/i,
+      /iPhone/i,
+      /iPad/i,
+      /iPod/i,
+      /BlackBerry/i,
+      /Windows Phone/i,
+    ];
 
     return toMatch.some((toMatchItem) => {
       return navigator.userAgent.match(toMatchItem);
@@ -66,20 +86,24 @@ export function UserAuthContextProvider({ children }) {
   const profileCreation = (user) => {
     if (user) {
       try {
-        setDoc(doc(db, 'users', user.uid), {
+        setDoc(doc(db, "users", user.uid), {
           uid: user.uid,
-          displayName: user.displayName ? user.displayName : user.email.match(/^([^@]*)@/)[1],
+          displayName: user.displayName
+            ? user.displayName
+            : user.email.match(/^([^@]*)@/)[1],
           profile_pictures: user.photoURL,
           created_at: Timestamp.now(),
+          language: null,
           email: user.email,
         }).then((res) => {
-          toast.success('Profile Creation Successfully!');
-          navigate('/chat');
+          toast.success("Profile Creation Successfully!");
+          navigate("/chat");
         });
       } catch (err) {
-        console.log(err, 'firestore err');
-        window.confirm('Something went wrong during profile creation, Please Retry') === true &&
-          window.location.reload();
+        console.log(err, "firestore err");
+        window.confirm(
+          "Something went wrong during profile creation, Please Retry"
+        ) === true && window.location.reload();
       }
     }
   };
